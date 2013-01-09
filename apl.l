@@ -133,7 +133,7 @@ void func(int, char, char*, int);
 			return READ;
 			}
 			
-"write"			{
+"print"			{
 			func(2,'p',NULL,-1);
 			return PRINT;
 			}

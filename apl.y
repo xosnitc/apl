@@ -132,11 +132,14 @@ ArgId:		ID					{
 		;		
 				
 Mainblock:	 INT fMAIN '(' ')' '{' Body '}'		{codegen($6);
-								out_linecount++;fprintf(fp,"OVER\n");
-								fclose(fp);						
-					 			//printf("%d Lines Compiled\n",linecount);
-								return(0);
-								}
+							out_linecount+=2;
+							fprintf(fp, "MOV R0, 10\nPUSH R0\n");
+							out_linecount++;
+							fprintf(fp, "INT 7\n");;
+							fclose(fp);						
+				 			//printf("%d Lines Compiled\n",linecount);
+							return(0);
+							}
 		;
 
 fMAIN:		MAIN					{m3=0;
