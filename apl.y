@@ -300,6 +300,8 @@ int main (void)
 {	
 	fp=fopen("./apcode.xsm","wb");
 	out_linecount++; fprintf(fp,"START\n");
+	fprintf(fp,"MOV SP, 1536\n");
+	fprintf(fp,"MOV BP, 1536\n");
 	return yyparse();
 }
 
