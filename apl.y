@@ -278,7 +278,7 @@ SysCall:	SYSCREA '(' param ')'			{$$=syscheck($1,$3,1);
 							}
 		|SYSOPEN '(' param ')'			{$$=syscheck($1,$3,1);
 							}
-		|SYSWRIT '(' param ')'			{$$=syscheck($1,$3,2);
+		|SYSWRIT '(' param ')'			{$$=syscheck($1,$3,5);
 							}
 		|SYSSEEK '(' param ')'			{$$=syscheck($1,$3,3);
 							}
@@ -300,8 +300,8 @@ int main (void)
 {	
 	fp=fopen("./apcode.xsm","wb");
 	out_linecount++; fprintf(fp,"START\n");
-	fprintf(fp,"MOV SP, 1536\n");
-	fprintf(fp,"MOV BP, 1536\n");
+	out_linecount++; fprintf(fp,"MOV SP, 1536\n");
+	out_linecount++; fprintf(fp,"MOV BP, 1536\n");
 	return yyparse();
 }
 

@@ -331,8 +331,8 @@ void codegen(struct tree * root)
 			fflush(fp);
 			top->pos1 = ftell(fp);
 			out_linecount++;
-			fprintf(fp, "JZ R%d, 00000\n", regcount-1);			
-			sprintf(top->instr1, "JZ R%d,", regcount-1);						
+			fprintf(fp, "JZ R%d, 00000\n", regcount-1);
+			sprintf(top->instr1, "JZ R%d,", regcount-1);
 			regcount--;
 			codegen(root->ptr2);
 			fflush(fp);
@@ -394,14 +394,8 @@ void codegen(struct tree * root)
 				regcount--;
 			}
 			pushargs(root->ptr1);
-			out_linecount+=2; fprintf(fp, "PUSH R0\nCALL fn%d\n", root->Gentry->bind);
+			out_linecount+=2; fprintf(fp, "PUSH R0\nCALL %d\n", root->Gentry->bind * 2);
 			out_linecount++; fprintf(fp, "POP R%d\n", n);			
-			if(root->Gentry->type==3)
-			{
-				out_linecount++; fprintf(fp, "MOV R%d, 1\n", n);
-				out_linecount++; fprintf(fp, "MOV R%d, SP\n", n+1);
-				out_linecount++; fprintf(fp, "ADD R%d, R%d\n", n, n+1);
-			}			
 			popargs(root->ptr1, root->Gentry->arglist, n);
 			while(regcount<n)
 			{
@@ -416,16 +410,8 @@ void codegen(struct tree * root)
 				codegen(root->ptr1);
 				out_linecount+=3; fprintf(fp, "MOV R%d, -2\nMOV R%d, BP\nADD R%d, R%d\n", regcount, regcount+1, regcount, regcount+1);
 				regcount++;
-				if(funcid->type==3)
-				{
-					out_linecount++;
-					fprintf(fp, "STRCPY R%d, R%d\n", regcount-1, regcount-2);
-				}
-				else
-				{
-					out_linecount++;
-					fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount-2);
-				}
+				out_linecount++;
+				fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount-2);
 				regcount=regcount-2;
 				endfn();
 			}			
@@ -443,11 +429,6 @@ void codegen(struct tree * root)
 			}
 			codegen(root->ptr1);
 			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
-			if(root->ptr1->type==3)
-			{
-				out_linecount++; fprintf(fp, "MOV R%d, SP\n", regcount);
-				out_linecount++; fprintf(fp, "STRCPY R%d, R%d\n", regcount, regcount-1);
-			}
 			regcount--;
 			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
 			out_linecount++; fprintf(fp, "MOV BP, SP\n");
@@ -491,9 +472,6 @@ void codegen(struct tree * root)
 			codegen(root->ptr1->ptr3);
 			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
 			regcount--;
-			codegen(root->ptr1->ptr3->ptr3);
-			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
-			regcount--;
 			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
 			out_linecount++; fprintf(fp, "MOV BP, SP\n");
 			if(root->nodetype == 'W')
@@ -507,9 +485,34 @@ void codegen(struct tree * root)
 				fprintf(fp, "INT 3\n");
 			}
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");
+			out_linecount++; fprintf(fp, "POP R0\n");			
+			if(root->nodetype == 'R')
+			{
+				if(root->ptr1->ptr3->Gentry!=NULL)
+				{
+					out_linecount++;
+					fprintf(fp, "MOV R%d, %d\n", regcount, root->ptr1->ptr3->Gentry->bind);
+				}
+				else
+				{
+					out_linecount++; fprintf(fp, "MOV R%d, %d\n", regcount, root->ptr1->ptr3->Lentry->bind);
+					out_linecount++; fprintf(fp, "MOV R%d, BP\n", regcount+1);
+					out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount, regcount+1);
+				}
+				regcount++;
+				if(root->ptr1!=NULL)
+				{
+					codegen(root->ptr1->ptr3->ptr1);
+					out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount-2, regcount-1);
+					regcount--;
+				}fprintf(fp, "MOV R%d, [R%d]\n", regcount-1, regcount-1);
+			}
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount);
+			if(root->nodetype == 'R')
+			{	
+				out_linecount++;
+				fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount);
+			}
 			out_linecount++; fprintf(fp, "POP R0\n");	
 			n=7;		
 			while(n>=0)
@@ -655,11 +658,6 @@ void pushargs(struct tree *a)
 		pushargs(a->ptr3);
 	codegen(a);
 	out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);	
-	if(a->type==3)
-	{
-		out_linecount++; fprintf(fp, "MOV R%d, SP\n", regcount);
-		out_linecount++; fprintf(fp, "STRCPY R%d, R%d\n", regcount, regcount-1);
-	}
 	regcount--;	
 }
 void popargs(struct tree *a, struct ArgStruct *arg, int n)
@@ -690,17 +688,7 @@ void popargs(struct tree *a, struct ArgStruct *arg, int n)
 			out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount-2, regcount-1);
 			regcount--;
 		}		
-		if(arg->type==3)
-		{
-			out_linecount++; fprintf(fp, "MOV R%d, 1\n", regcount);
-			out_linecount++; fprintf(fp, "MOV R%d, SP\n", regcount+1);
-			out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount, regcount+1);
-			out_linecount++; fprintf(fp, "STRCPY R%d, R%d\n", regcount-1, regcount);
-		}
-		else
-		{
-			out_linecount++; fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount-2);
-		}
+		out_linecount++; fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount-2);
 		regcount=regcount-2;	
 	}	
 	popargs(a->ptr3, arg->next, n);
@@ -866,7 +854,7 @@ struct tree* maketree(struct tree *a, struct tree *b, struct tree *c, struct tre
 		a->ptr3=NULL;
 		return a;
 	}
-	else if(a->type==1 && b->type==c->type && (b->type==0 || (a->nodetype=='e' && b->type==3)))		//type checking of relational expression 
+	else if(a->type==1 && b->type==c->type)		//type checking of relational expression 
 	{		
 		a->ptr1=b;
 		a->ptr2=c;
@@ -1021,9 +1009,7 @@ void fdefcheck(struct tree *a, struct ArgStruct *b, int type)
 		exit(0);
 	}
 	a->Gentry->size=1; //flag set to one. ie fuction defined
-	out_linecount++; fprintf(fp, "fn%d:\n", labelcount);
-	a->Gentry->bind=labelcount;
-	labelcount++;
+	a->Gentry->bind=out_linecount;
 	out_linecount++; fprintf(fp, "PUSH BP\n");
 	out_linecount++; fprintf(fp, "MOV BP, SP\n"); 
 }
@@ -1063,7 +1049,7 @@ struct tree * makeparam(struct tree *a, struct tree *b)
 		{
 			if(b->ptr1==NULL)
 				b->Lentry=Llookup(b->name);
-			if(a->Lentry==NULL)
+			if(b->Lentry==NULL)
 				b->Gentry=lookup(b->name);
 			if(b->Gentry==NULL && b->Lentry==NULL)
 			{
@@ -1140,14 +1126,20 @@ struct tree* syscheck(struct tree * a,  struct tree * b,  int flag)
 			}
 			a->ptr1=b;
 			break;
-		case 2:		//Write,  Read
-			if(b==NULL || b->type!=0 || b->ptr3==NULL || b->ptr3->type!=3
-			|| b->ptr3->ptr3==NULL || b->ptr3->ptr3->type!=0 || b->ptr3->ptr3->ptr3!=NULL)
+		case 2:		//Read
+			if(b==NULL || b->type!=0 || b->ptr3==NULL || b->ptr3->nodetype != 'i' || b->ptr3->ptr3!=NULL)
 			{
 				printf("\n%d Type mismatch in system call %s!!\n", linecount, a->name);
 				exit(0);
 			}
-			b->ptr3->ptr1=NULL;
+			a->ptr1=b;
+			break;
+		case 5:		//Write
+			if(b==NULL || b->type!=0 || b->ptr3==NULL || b->ptr3->ptr3!=NULL)
+			{
+				printf("\n%d Type mismatch in system call %s!!\n", linecount, a->name);
+				exit(0);
+			}
 			a->ptr1=b;
 			break;
 		case 3:		//Seek
