@@ -336,18 +336,18 @@ Returns a file descriptor of the file in the filesystem with the specified filen
 
 
 \subsection{Read}
-Reads the specified number of words(16 bytes) from a file which has the specified file descriptor into a string array. The return value of this system call is the number of words successfully read. If the \textbf{Read} fails, an appropriate error code is returned.\\
+Reads one word(16 bytes) from a file which has the specified file descriptor, into a string/integer variable. The return value of this system call is 0, if it is a success. If the \textbf{Read} fails, an appropriate error code is returned.\\
 
-\textit{integer \textbf{Read}(integer fileDescriptor, string buffer[], integer numWords);}
+\textit{integer \textbf{Read}(integer fileDescriptor, string/integer variable);}
 
 
 
 
 
 \subsection{Write}
-Writes the specified number of words from the string buffer to a file in the filesystem with the specified file descriptor. The return value of this system call is the number of words successfully written. If the \textbf{Write} fails, an appropriate error code is returned.\\
+Writes one word from a string/integer variable, to a file in the filesystem with the specified file descriptor. The return value of this system call is 0, if it is a success. If the \textbf{Write} fails, an appropriate error code is returned.\\
 
-\textit{integer \textbf{Write}(integer fileDescriptor, string buffer[], integer numWords);}
+\textit{integer \textbf{Write}(integer fileDescriptor, string/integer variable);}
 
 
 
