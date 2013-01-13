@@ -15,6 +15,6 @@ integer main()
 {
 	integer y;
 	read(y);
-	write(f(y));
+	print(f(y));
 	return 0;	
 }

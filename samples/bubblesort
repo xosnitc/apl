@@ -29,7 +29,7 @@ integer main()
 	endwhile;
 	i=bubblesort();
 	while i<10 do
-		write(a[i]);
+		print(a[i]);
 		i=i+1;
 	endwhile;
 	return 0;

@@ -24,8 +24,8 @@ integer main()
 	integer m,n;
 	read(m);
 	read(n);
-	write(gcd(m,n));
-	write(x);
-	write(y);
+	print(gcd(m,n));
+	print(x);
+	print(y);
 	return 0;
 }
