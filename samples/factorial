@@ -16,6 +16,6 @@ integer main()
 	integer b;
 	read(a);
 	b=fact(a);
-	write(b);
+	print(b);
 	return 0;
 }

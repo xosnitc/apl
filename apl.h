@@ -701,7 +701,10 @@ void endfn()
 	{
 		//printf("%s-%d\n", temp->name, temp->bind);
 		if(temp->bind>0)
-			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
+		{
+			out_linecount++;
+			fprintf(fp, "POP R%d\n", regcount);		
+		}
 		temp=temp->next;
 	}
 	out_linecount+=2; fprintf(fp, "POP BP\nRET\n");	
