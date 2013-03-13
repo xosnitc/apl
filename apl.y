@@ -299,7 +299,7 @@ SysCall:	SYSCREA '(' param ')'			{$$=syscheck($1,$3,1);
 int main (int argc, char **argv)
 {	
 	FILE *input_fp;
-	char filename[200];
+	char filename[200],ch;
 	strcpy(filename,argv[1]);	
 	if(argc < 2)
 	{
@@ -315,11 +315,30 @@ int main (int argc, char **argv)
 	}
 	yyin = input_fp;
 	changeext(filename);
-	fp=fopen(filename,"wb");
+	fp=fopen(".temp","wb");
 	out_linecount++; fprintf(fp,"START\n");
 	out_linecount++; fprintf(fp,"MOV SP, 1536\n");
 	out_linecount++; fprintf(fp,"MOV BP, 1536\n");
-	return yyparse();
+	yyparse();
+	fclose(input_fp);
+	input_fp = fopen(".temp","r");
+	if(!input_fp)
+	{
+		printf("Writing compiled code to file failed\n");
+		return 0;
+	}
+	fp = fopen(filename,"wb");
+	if(!fp)
+	{
+		fclose(input_fp);
+		printf("Writing compiled code to file failed\n");
+		return 0;
+	}
+	while( ( ch = fgetc(input_fp) ) != EOF )
+		fputc(ch, fp);
+	fclose(input_fp);
+	fclose(fp);	
+	return 0;	
 }
 int yyerror (char *msg) 
 {
