@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include "apl.h"
+extern FILE *yyin;
 %}
 %union
 {
@@ -295,16 +296,31 @@ SysCall:	SYSCREA '(' param ')'			{$$=syscheck($1,$3,1);
 		;
 		
 %%
-
-int main (void)
+int main (int argc, char **argv)
 {	
-	fp=fopen("./apcode.xsm","wb");
+	FILE *input_fp;
+	char filename[200];
+	strcpy(filename,argv[1]);	
+	if(argc < 2)
+	{
+		printf("Specify an input filename\n");
+		return 0;
+	}
+	expandpath(filename);
+	input_fp = fopen(filename,"r");
+	if(!input_fp)
+	{
+		printf("Invalid input file\n");
+		return 0;
+	}
+	yyin = input_fp;
+	changeext(filename);
+	fp=fopen(filename,"wb");
 	out_linecount++; fprintf(fp,"START\n");
 	out_linecount++; fprintf(fp,"MOV SP, 1536\n");
 	out_linecount++; fprintf(fp,"MOV BP, 1536\n");
 	return yyparse();
 }
-
 int yyerror (char *msg) 
 {
 	return fprintf (stderr, "%d: %s\n",linecount,msg);
