@@ -421,19 +421,10 @@ void codegen(struct tree * root)
 		case 'O':	//Open syscall
 		case 'L':	//Close syscall
 		case 'D':	//Delete syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
 			codegen(root->ptr1);
-			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
+			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0\n", regcount-1);
 			regcount--;
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount++; fprintf(fp, "MOV BP, SP\n");
-			
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n",regcount, root->value,regcount);
 			if( root->nodetype == 'C' || root->nodetype=='D')
 			{
 				out_linecount++;
@@ -446,35 +437,20 @@ void codegen(struct tree * root)
 			}
 			//Interrupt
 			
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");	
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
-			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
-			regcount++;			
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount);
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);
+			regcount++;
 			break;
 		case 'W':	//Write syscall
 		case 'R':	//Read syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
 			codegen(root->ptr1);
 			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
 			regcount--;
 			codegen(root->ptr1->ptr3);
-			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
+			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0\n", regcount-1);
 			regcount--;
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount++; fprintf(fp, "MOV BP, SP\n");
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
 			if(root->nodetype == 'W')
 			{
 				out_linecount++;
@@ -486,7 +462,7 @@ void codegen(struct tree * root)
 				fprintf(fp, "INT 3\n");
 			}
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");			
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);			
 			if(root->nodetype == 'R')
 			{
 				if(root->ptr1->ptr3->Gentry!=NULL)
@@ -501,152 +477,70 @@ void codegen(struct tree * root)
 					out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount, regcount+1);
 				}
 				regcount++;
-				if(root->ptr1!=NULL)
+				if(root->ptr1->ptr3->ptr1!=NULL)
 				{
 					codegen(root->ptr1->ptr3->ptr1);
 					out_linecount++; fprintf(fp, "ADD R%d, R%d\n", regcount-2, regcount-1);
 					regcount--;
-				}fprintf(fp, "MOV R%d, [R%d]\n", regcount-1, regcount-1);
+				}
 			}
 			out_linecount++; fprintf(fp, "POP R%d\n",regcount);
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);
 			if(root->nodetype == 'R')
 			{	
 				out_linecount++;
-				fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount);
+				fprintf(fp, "MOV [R%d], R%d\n", regcount-1, regcount+1);
+				out_linecount++;
+				fprintf(fp, "MOV R%d, R%d\n", regcount-1, regcount);
+				regcount--;
 			}
-			out_linecount++; fprintf(fp, "POP R0\n");	
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
-			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
+			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);	
 			regcount++;
 			break;
 		case 'S':	//Seek syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
 			codegen(root->ptr1);
 			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
 			regcount--;
 			codegen(root->ptr1->ptr3);
-			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
+			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0\n", regcount-1);
 			regcount--;
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount+=2; fprintf(fp, "MOV BP, SP\nINT 3\n");
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
+			out_linecount++; fprintf(fp, "INT 3\n");
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");	
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);	
 			regcount++;
 			break;				
 		case 'F':	//Fork syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount+=2; fprintf(fp, "MOV BP, SP\nINT 5\n");
+			out_linecount++; fprintf(fp, "PUSH R0\n");
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
+			out_linecount++; fprintf(fp, "INT 5\n");
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
 			regcount++;
 			break;
 		case 'X':	//Exec syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
 			codegen(root->ptr1);
-			out_linecount++; fprintf(fp, "PUSH R%d\n", regcount-1);
-			out_linecount++; fprintf(fp, "MOV R%d, SP\n", regcount);
-			out_linecount++; fprintf(fp, "STRCPY R%d, R%d\n", regcount, regcount-1);
+			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0", regcount-1);
 			regcount--;
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount+=2; fprintf(fp, "MOV BP, SP\nINT 6\n");
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
+			out_linecount++; fprintf(fp, "INT 6\n");
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			out_linecount++; fprintf(fp, "POP R0\n");	
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
+			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
 			regcount++;
 			break;
 		case 'E':	//Exit syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount+=2; fprintf(fp, "MOV BP, SP\nINT 7\n");
-			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
-			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
-			break;
 		case 'H':	//Halt syscall
-			n=0;
-			out_linecount+=2; fprintf(fp, "PUSH R0\nPUSH BP\n");
-			while(n<8)
-			{
-				out_linecount++; fprintf(fp, "PUSH R%d\n", n);
-				n++;
-			}
-			out_linecount+=2; fprintf(fp, "MOV R0, %d\nPUSH R0\n", root->value);
-			out_linecount+=2; fprintf(fp, "MOV BP, SP\nINT 7\n");
+			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
+			out_linecount++; fprintf(fp, "INT 7\n");
 			//Interrupt 
-			out_linecount++; fprintf(fp, "POP R0\n");
-			n=7;		
-			while(n>=0)
-			{
-				out_linecount++; fprintf(fp, "POP R%d\n", n);
-				n--;
-			}			
-			out_linecount++; fprintf(fp, "POP BP\n");
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
-			break;
+			break;	
 		default:
 			return;
 	}
