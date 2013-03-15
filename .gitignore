@@ -2,5 +2,6 @@ apl
 lex.yy.c
 y.tab.c
 y.tab.h
-apcode.xsm
+*.xsm
 *.temp
+*~
