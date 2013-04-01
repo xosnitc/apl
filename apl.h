@@ -524,7 +524,7 @@ void codegen(struct tree * root)
 			break;
 		case 'X':	//Exec syscall
 			codegen(root->ptr1);
-			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0", regcount-1);
+			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0\n", regcount-1);
 			regcount--;
 			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
 			out_linecount++; fprintf(fp, "INT 6\n");
