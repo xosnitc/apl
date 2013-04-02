@@ -51,7 +51,8 @@ struct tree
 					C-Create	O-Open		W-Write
 					S-Seek		R-Read		L-Close
 					D-Delete	F-Fork		X-Exec		E-Exit	
-					b-break		t-continue*/
+					b-break		t-continue
+					B-breakpoint*/
 	char *name;
 	int value;
 	struct Gsymbol *Gentry;
@@ -387,6 +388,10 @@ void codegen(struct tree * root)
 			out_linecount++;
 			fprintf(fp, "JMP %ld\n", top_while->pos1);
 			break;
+		case 'B':	//Breakpoint
+			out_linecount++;
+			fprintf(fp, "BRKP\n");
+			break;
 		case 'f':
 			n=regcount;
 			while(regcount>0)
@@ -535,7 +540,6 @@ void codegen(struct tree * root)
 			regcount++;
 			break;
 		case 'E':	//Exit syscall
-		case 'H':	//Halt syscall
 			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
 			out_linecount++; fprintf(fp, "INT 7\n");
 			//Interrupt 

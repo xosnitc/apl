@@ -72,6 +72,11 @@ void func(int, char, char*, int);
 "enddecl"		{
 			return ENDDECL;
 			}
+
+"breakpoint"			{
+			func(2,'B',NULL,-1);
+			return BREAKPOINT;
+			}
 			
 "Create"		{
 			func(0,'C',yytext,1);
@@ -121,11 +126,6 @@ void func(int, char, char*, int);
 "Exit"			{
 			func(0,'E',yytext,10);
 			return SYSEXIT;
-			}
-
-"Halt"			{
-			func(0,'H',yytext,0);
-			return SYSHALT;
 			}
 
 "read"			{

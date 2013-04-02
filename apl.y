@@ -9,8 +9,8 @@ extern FILE *yyin;
 	struct tree *n;
 	struct ArgStruct *arg;
 }
-%token NUM OPER1 OPER2 ID INT STR STRING MAIN BEGN END DECL ENDDECL ASG READ PRINT RELOP LOGOP NEGOP IF ELSE THEN ENDIF WHILE DO ENDWHILE RETURN SYSCREA SYSOPEN SYSWRIT SYSSEEK SYSREAD SYSCLOS SYSDELE SYSFORK SYSEXEC SYSEXIT SYSHALT BREAK CONTINUE
-%type<n> stmtlist param stmt retstmt expr ids fID Body SysCall NUM STRING OPER1 OPER2 ID ASG READ PRINT RELOP LOGOP NEGOP IF WHILE RETURN SYSCREA SYSOPEN SYSWRIT SYSSEEK SYSREAD SYSCLOS SYSDELE SYSFORK SYSEXEC SYSEXIT SYSHALT ifpad whilepad BREAK CONTINUE
+%token NUM OPER1 OPER2 ID INT STR STRING MAIN BEGN END DECL ENDDECL ASG READ PRINT RELOP LOGOP NEGOP IF ELSE THEN ENDIF WHILE DO ENDWHILE RETURN SYSCREA SYSOPEN SYSWRIT SYSSEEK SYSREAD SYSCLOS SYSDELE SYSFORK SYSEXEC SYSEXIT BREAK CONTINUE BREAKPOINT
+%type<n> stmtlist param stmt retstmt expr ids fID Body SysCall NUM STRING OPER1 OPER2 ID ASG READ PRINT RELOP LOGOP NEGOP IF WHILE RETURN SYSCREA SYSOPEN SYSWRIT SYSSEEK SYSREAD SYSCLOS SYSDELE SYSFORK SYSEXEC SYSEXIT ifpad whilepad BREAK CONTINUE BREAKPOINT
 %type<arg> ArgId ArgIdList ArgDecl ArgList fArgList
 %left LOGOP
 %left RELOP  
@@ -199,8 +199,6 @@ stmt:		ids ASG expr ';'	 		{$$=maketree($2,$1,$3,NULL);
 							}
 		|SYSEXIT '(' ')' ';'			{$$=$1;		
 							}
-		|SYSHALT '(' ')' ';'			{$$=$1;		
-							}
 		|BREAK ';'				{if(flag_break==0)
 							{
 								printf("\n%d: break or continue should be used inside while!!\n",linecount);
@@ -214,6 +212,8 @@ stmt:		ids ASG expr ';'	 		{$$=maketree($2,$1,$3,NULL);
 								exit(0);								
 							}
 							$$=$1;
+							}
+		|BREAKPOINT ';'				{$$=$1;		
 							}					
 		;
 
