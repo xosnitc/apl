@@ -50,7 +50,8 @@ struct tree
 					a-AND		o-OR		x-NOT							
 					C-Create	O-Open		W-Write
 					S-Seek		R-Read		L-Close
-					D-Delete	F-Fork		X-Exec		E-Exit	
+					D-Delete	F-Fork		X-Exec		E-Exit
+					G-Getpid	P-Getppid	Y-Wait		Z-Signal
 					b-break		t-continue
 					B-breakpoint*/
 	char *name;
@@ -426,20 +427,18 @@ void codegen(struct tree * root)
 		case 'O':	//Open syscall
 		case 'L':	//Close syscall
 		case 'D':	//Delete syscall
+		case 'Y':	//Wait syscall
 			codegen(root->ptr1);
 			out_linecount+=2; fprintf(fp, "PUSH R%d\nPUSH R0\n", regcount-1);
 			regcount--;
 			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n",regcount, root->value,regcount);
+			out_linecount++;
 			if( root->nodetype == 'C' || root->nodetype=='D')
-			{
-				out_linecount++;
 				fprintf(fp, "INT 1\n");
-			}
+			else if( root->nodetype == 'Y')
+				fprintf(fp, "INT 7\n");
 			else
-			{
-				out_linecount++;
 				fprintf(fp, "INT 2\n");
-			}
 			//Interrupt
 			
 			out_linecount++; fprintf(fp, "POP R%d\n",regcount+1);
@@ -519,9 +518,18 @@ void codegen(struct tree * root)
 			regcount++;
 			break;				
 		case 'F':	//Fork syscall
+		case 'G':	//Getpid syscall
+		case 'P':	//Getppid syscall
+		case 'Z':	//Signal syscall
 			out_linecount++; fprintf(fp, "PUSH R0\n");
 			out_linecount+=2; fprintf(fp, "MOV R%d, %d\nPUSH R%d\n", regcount, root->value, regcount);
-			out_linecount++; fprintf(fp, "INT 5\n");
+			out_linecount++;
+			if( root->nodetype == 'F')
+				fprintf(fp, "INT 5\n");
+			else if( root->nodetype == 'G' || root->nodetype=='P')
+				fprintf(fp, "INT 6\n");
+			else
+				fprintf(fp, "INT 7\n");
 			//Interrupt 
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount+1);
 			out_linecount++; fprintf(fp, "POP R%d\n", regcount);
@@ -726,7 +734,7 @@ struct tree* maketree(struct tree *a, struct tree *b, struct tree *c, struct tre
 			}
 			else
 			{
-				printf("\n%d: IF condition must have logical expression!!\n", linecount);
+				printf("\n%d: IF/WHILE condition must have logical expression!!\n", linecount);
 				exit(0);
 			}
 		}
@@ -1052,7 +1060,7 @@ struct tree* syscheck(struct tree * a,  struct tree * b,  int flag)
 			}
 			a->ptr1=b;
 			break;
-		case 4:		//Close
+		case 4:		//Close, Wait
 			if(b==NULL || b->ptr3!=NULL || b->type!=0)
 			{
 				printf("\n%d Type mismatch in system call %s!!\n", linecount, a->name);

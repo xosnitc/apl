@@ -128,6 +128,26 @@ void func(int, char, char*, int);
 			return SYSEXIT;
 			}
 
+"Getpid"		{
+			func(0,'G',yytext,11);
+			return SYSGPID;
+			}
+
+"Getppid"		{
+			func(0,'P',yytext,12);
+			return SYSGPPID;
+			}
+			
+"Wait"			{
+			func(0,'Y',yytext,13);
+			return SYSWAIT;
+			}
+
+"Signal"		{
+			func(0,'Z',yytext,14);
+			return SYSSIGNAL;
+			}
+			
 "read"			{
 			func(2,'r',NULL,-1);
 			return READ;
