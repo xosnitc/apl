@@ -325,8 +325,8 @@ int main (int argc, char **argv)
 	changeext(filename);
 	fp=fopen(".temp","wb");
 	out_linecount++; fprintf(fp,"START\n");
-	out_linecount++; fprintf(fp,"MOV SP, 1536\n");
-	out_linecount++; fprintf(fp,"MOV BP, 1536\n");
+	out_linecount++; fprintf(fp,"MOV SP, 1535\n");
+	out_linecount++; fprintf(fp,"MOV BP, 1535\n");
 	yyparse();
 	fclose(input_fp);
 	input_fp = fopen(".temp","r");
